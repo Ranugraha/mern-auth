@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
+import transporter from "../config/nodemailer.js";
 
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -29,8 +30,19 @@ export const register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-      maxAge: 7 * 24 * 60 * 60 * 10000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
+    // Sending welcome email
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: email,
+      subject: "Welcome to TelagaSoftware",
+      text: `Welcome to TelagaSoftware website. Your account has beencreated with email id : ${email}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
     return res.json({ success: true, message: "User registered successfully" });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -84,7 +96,7 @@ export const logout = async (req, res) => {
   // if (cookie) {
   //   return res.json({ success: true, message: "coockie is available" });
   // }
-  
+
   try {
     res.clearCookie("token", {
       httpOnly: true,
@@ -93,7 +105,6 @@ export const logout = async (req, res) => {
     });
 
     return res.json({ success: true, message: "Logged out" });
-
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
