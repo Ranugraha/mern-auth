@@ -112,7 +112,7 @@ export const logout = async (req, res) => {
 
 export const sendVerifyOtp = async (req, res) => {
   try {
-    const userId = req.body;
+    const { userId } = req.user;
 
     const user = await userModel.findById(userId);
 
@@ -123,7 +123,7 @@ export const sendVerifyOtp = async (req, res) => {
     const otp = String(Math.floor(100000 + Math.random() * 900000));
 
     user.verifyOtp = otp;
-    user.verifyOtpExpireAt = date.now() + 24 * 60 * 60 * 1000;
+    user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
 
     await user.save();
 
@@ -145,22 +145,28 @@ export const sendVerifyOtp = async (req, res) => {
 };
 
 export const verifyEmail = async (req, res) => {
-  const { userId, otp } = req.body;
-
+  const { otp } = req.body;
+  const { userId } = req.user;
+  
+  
   if (!userId || !otp) {
     return res.json({
       success: false,
       message: "Missing Details",
     });
   }
+  
   try {
     const user = await userModel.findById(userId);
+    
+    
 
     if (!user) {
       return res.json({ success: false, message: "User not found" });
     }
 
-    if (user.verifyOtp === "" || userverifyOTP !== otp) {
+  
+    if (user.verifyOtp === "" || user.verifyOtp !== otp) {
       return res.json({ success: false, message: "Invalid OTP" });
     }
 
